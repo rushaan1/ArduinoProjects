@@ -1,0 +1,61 @@
+#include "SevSeg.h"
+#include "DHT.h"
+SevSeg sevseg; 
+
+#define dhtPin 2
+#define dhtType DHT11
+
+DHT dht(dhtPin, dhtType);
+
+const int BUTTON_PIN = A1;  
+const int BUTTON_PIN_2 = A2;     
+int lastState = LOW;  
+int lastState2 = LOW;
+
+int currentState;
+int currentState2;
+
+void setup(){
+  Serial.begin(9600);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_PIN_2,INPUT_PULLUP);
+  byte numDigits = 4;
+  byte digitPins[] = {10, 11, 12, 13};
+  byte segmentPins[] = {9, A0, 3, 5, 6, 8, 7, 4};
+
+  bool resistorsOnSegments = true; 
+  bool updateWithDelaysIn = true;
+  byte hardwareConfig = COMMON_ANODE; 
+  sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments);
+  sevseg.setBrightness(90);
+  dht.begin();
+}
+
+void setTemperature(){
+    int temp = dht.readTemperature();
+    sevseg.setNumber(temp);
+}
+
+void setHumidity(){
+  int humid = dht.readHumidity();
+  sevseg.setNumber(humid);
+}
+
+void loop(){
+  currentState = digitalRead(BUTTON_PIN);
+  currentState2 = digitalRead(BUTTON_PIN_2);
+
+  if(lastState == HIGH && currentState == LOW){
+    setTemperature();
+  }
+
+
+
+  if(lastState2 == HIGH && currentState2 == LOW){
+    setHumidity();
+    Serial.println("The button is pressed");
+  }
+  lastState = currentState;
+  lastState2 = currentState2;
+  sevseg.refreshDisplay();
+}
