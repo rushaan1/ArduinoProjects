@@ -1,0 +1,24 @@
+#include "SevSeg.h"
+#include "DHT.h"
+SevSeg sevseg; 
+
+#define dhtPin 2
+#define dhtType DHT11
+
+DHT dht(dhtPin, dhtType);
+
+void setup(){
+  Serial.begin(9600);
+  byte numDigits = 4;
+  byte digitPins[] = {10, 11, 12, 13};
+  byte segmentPins[] = {9, A0, 3, 5, 6, 8, 7, 4};
+  sevseg.begin(COMMON_ANODE, numDigits, digitPins, segmentPins, true);
+  sevseg.setBrightness(90);
+  dht.begin();
+}
+
+void loop(){
+  int temp = dht.readTemperature();
+  sevseg.setNumber(temp);
+  sevseg.refreshDisplay();
+}
